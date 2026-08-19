@@ -3,7 +3,7 @@
 # ============================================
 # MiniMax H3 モデル自動ダウンロードスクリプト
 # PinkCherry beta-0.6 + 10Eros-Max beta2 対応版
-# 選択式・中断再開対応
+# 選択式・中断再開対応・大きい順ダウンロード
 # ============================================
 #
 # 【RunPod Webターミナルでの実行方法】
@@ -18,6 +18,7 @@
 # ※ 共通ファイル（Text Encoder + VAE）は常にダウンロードされます。
 # ※ 片方のみ選択時、選んでいない方の Diffusion Model は
 #    途中ファイル含め削除されます。
+# ※ ダウンロードはサイズの大きい順に実行します。
 #
 # ============================================
 
@@ -39,9 +40,9 @@ echo "（共通ファイル: Text Encoder + VAE は常にダウンロード）"
 echo ""
 echo "ダウンロードする Diffusion Model を選択してください："
 echo ""
-echo "  1) PinkCherry beta-0.6 int8 のみ"
-echo "  2) 10Eros-Max fl2va beta2 pruned のみ"
-echo "  3) 両方"
+echo "  1) PinkCherry beta-0.6 int8 のみ     … ネットワークドライブ 70GB以上"
+echo "  2) 10Eros-Max fl2va beta2 pruned のみ … ネットワークドライブ 75GB以上"
+echo "  3) 両方                               … ネットワークドライブ 110GB以上"
 echo ""
 read -p "番号を入力 (1-3): " CHOICE
 echo ""
@@ -71,25 +72,33 @@ case $CHOICE in
   1)
     DOWNLOADS=("${PINKCHERRY[@]}" "${COMMON_FILES[@]}")
     REMOVE_FILES=("$EROS_NAME")
-    echo "→ PinkCherry のみ + 共通ファイル"
+    echo "→ PinkCherry のみ + 共通ファイル（目安: 70GB以上）"
     echo "→ 存在する場合は 10Eros-Max 関連ファイルを削除します"
     ;;
   2)
     DOWNLOADS=("${EROS[@]}" "${COMMON_FILES[@]}")
     REMOVE_FILES=("$PINKCHERRY_NAME")
-    echo "→ 10Eros-Max のみ + 共通ファイル"
+    echo "→ 10Eros-Max のみ + 共通ファイル（目安: 75GB以上）"
     echo "→ 存在する場合は PinkCherry 関連ファイルを削除します"
     ;;
   3)
     DOWNLOADS=("${PINKCHERRY[@]}" "${EROS[@]}" "${COMMON_FILES[@]}")
     REMOVE_FILES=()
-    echo "→ 両方 + 共通ファイル"
+    echo "→ 両方 + 共通ファイル（目安: 110GB以上）"
     ;;
   *)
     echo "無効な選択です。終了します。"
     exit 1
     ;;
 esac
+
+# サイズ（4列目）の大きい順に並べ替え
+if [ ${#DOWNLOADS[@]} -gt 0 ]; then
+    mapfile -t DOWNLOADS < <(
+        printf '%s\n' "${DOWNLOADS[@]}" | sort -t'|' -k4 -nr
+    )
+    echo "→ ダウンロード順: サイズの大きい順"
+fi
 
 echo "選択完了。この後は完了まで自動で進みます。"
 echo ""
@@ -126,7 +135,6 @@ remove_unwanted() {
         fi
     done
 
-    # aria2 が作る可能性のある断片（name で始まる制御ファイル）
     shopt -s nullglob
     for f in "$dir/$name".*; do
         if [ -e "$f" ]; then
@@ -205,6 +213,13 @@ download_file() {
         fi
     done
 }
+
+echo "----- ダウンロード順（大きい順） -----"
+for item in "${DOWNLOADS[@]}"; do
+    IFS='|' read -r _u _s fname fsize <<< "$item"
+    echo "  - $fname ($(numfmt --to=iec-i --suffix=B $fsize 2>/dev/null || echo $fsize bytes))"
+done
+echo ""
 
 for item in "${DOWNLOADS[@]}"; do
     IFS='|' read -r url subdir filename minsize <<< "$item"
