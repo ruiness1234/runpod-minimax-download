@@ -10,7 +10,7 @@
 #
 # 初回・再開とも同じコマンド:
 #
-#   bash <(curl -fsSL https://raw.githubusercontent.com/ruiness1234/runpod-minimax-download/main/download_minimax.sh)
+#   bash <(curl -fsSL https://raw.githubusercontent.com/ruiness1234/runpod-minimax/main/download_minimax.sh)
 #
 # ※ 途中で Ctrl+C で止めても、同じコマンドを再実行すれば
 #    未完了ファイルは aria2c -c で続きから再開されます。
