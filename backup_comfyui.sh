@@ -7,7 +7,7 @@
 #
 # 【RunPod Webターミナルでの実行方法】
 #
-#   bash <(curl -fsSL https://raw.githubusercontent.com/YOUR_REPO/backup_comfyui.sh)
+#   bash <(curl -fsSL https://raw.githubusercontent.com/ruiness1234/runpod-minimax/main/backup_comfyui.sh)
 #   またはローカルに置いて:
 #   bash backup_comfyui.sh
 #
